@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { SendSmsDto } from '../dtos/request.dto';
 import { CheckAccountResDto } from '../dtos/response.dto';
 import { UsersMWRepository } from 'src/orm/repositories/users_medicalwallet.repository';
@@ -10,9 +11,11 @@ import { ConfigService } from '@nestjs/config';
 import { SendSmsResDto } from '../dtos/response.dto';
 import { NcpSmsDto } from '../dtos/api-response.dto';
 import { EnvUndefinedError } from 'src/common/exception/errors';
+import { API, AxiosError } from 'src/common/third-party-api/api';
+import { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 @Injectable()
-export class SmsService {
+export class SmsService extends API{
 
     private naverServiceId: string; // NCP project Service ID
     private accessKey: string; // NCP project Access Key
@@ -25,6 +28,10 @@ export class SmsService {
         private readonly accountService: AccountTokenService,
         private readonly usersMWRepository: UsersMWRepository
     ) {
+        super();
+
+        const ncpSmsUrl = this.configService.get<string>('NAVER_SMS_URL');
+        this.initialBaseUrl(ncpSmsUrl);
         this.logger.setContext(SmsService.name);
 
         this.naverServiceId = this.configService.get<string>('NAVER_SMS_ID');
@@ -52,23 +59,69 @@ export class SmsService {
         }
     }
 
-    private sendMessage(type: string, taget: string, message: string): Promise<NcpSmsDto> {
+    private async sendMessage(type: string, taget: string, message: string): Promise<NcpSmsDto> {
 
-        // TODO: Error 처리
         if(!this.isValidType(type)){
-            throw new NcpMessageError('invalid type');
+            throw new InternalServerErrorException('Invalid NCP Message Type');
         }
 
         const timestamp = Date.now().toString();
-        const url = `${this.getServiceUrl(type)}/services/${this.naverServiceId}/messages`;
+        const endpoint = `/services/${this.naverServiceId}/messages`;
 
         // create Signature for NCP SMS API
         const method = "POST";
         const space = " ";
         const newLine = "\n";
         const hmac = crypto.createHmac('sha256', this.secretKey);
-        hmac.update(method + space + `/{type}/v2/services/${naverServiceId}/messages` + newLine + timestamp + newLine + accessKey);
+        hmac.update(method + space + `/{type}/v2/services/${this.naverServiceId}/messages` + newLine + timestamp + newLine + this.accessKey);
         const signature = hmac.digest('base64');
+
+        const requestBody = {
+            type: type,
+            contentType: "COMM",
+            countryCode: "82",
+            from: this.from,
+            content: message,
+            messages: [
+                {
+                    to: taget
+                }
+            ]
+        };
+
+        const headers = {
+            'Content-Type': 'application/json; charset=utf-8',
+            'x-ncp-apigw-timestamp': timestamp,
+            'x-ncp-iam-access-key': this.accessKey,
+            'x-ncp-apigw-signature-v2': signature
+        };
+
+        const postConfig = this.createPostConfig(endpoint, requestBody, headers);
+
+        try{
+            const response = await this.request<NcpSmsDto>(postConfig);
+            const data = response.data;
+            return data;
+        }catch(error){
+            if(error instanceof Error){
+                this.logger.debug('axios error from ncp sms:', error);
+                const asxiosError = error as AxiosError<NcpSmsDto>;
+                const response = asxiosError.response;
+                // TODO: NcpException 정의, 및 NCP Filter 구현
+                switch (response.status) {
+                    case 400:
+                      return [null, new ServiceApiError(BAD_REQUEST_ERROR, data.error)];
+                    case 401:
+                      return [null, new ServiceApiError(INVALID_TOKEN_ERROR, data.error)];
+                    case 404:
+                      return [null, new ServiceApiError(NOT_FOUND_ERROR, data.error)];
+                    case 500:
+                      return [null, new ServiceApiError(SERVER_ERROR, data.error)];
+                    default:
+                      return [null, new ServiceApiError(HTTP_ERROR, data.error)];
+                }
+            }
+        }
 
     }
 

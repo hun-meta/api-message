@@ -13,27 +13,23 @@ export interface AxiosError<T> {
         config: any;
         headers: any;
         request: any;
-        data: BaseResponse<T>;
+        data: T;
     };
     stack?: string;
 }
 
 // API request http parent class
 class API {
-    protected url: string;
     protected axiosInstance: AxiosInstance;
-
-    // 생성자, URL을 매개변수로 받음
-    constructor(url: string) {
-        this.url = url;
-
-        this.axiosInstance = axios.create({
-            baseURL: this.url,
-        });
+  
+    protected initialBaseUrl(url: string){
+      this.axiosInstance = axios.create({
+        baseURL: url,
+      });
     }
 
     // API 요청 메소드
-    protected async request<T = BaseResponse<any>>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> {
+    protected async request<T>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> {
         try {
             const response = await this.axiosInstance.request<T>(config);
             return response;
@@ -41,7 +37,7 @@ class API {
             if (error instanceof Error) {
                 throw error;
             } else {
-                throw new Error(`Unknown Error: ${error}`);
+                throw error;
             }
         }
     }
