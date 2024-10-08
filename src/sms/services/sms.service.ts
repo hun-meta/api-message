@@ -1,18 +1,14 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { SendSmsDto } from '../dtos/request.dto';
-import { CheckAccountResDto } from '../dtos/response.dto';
-import { UsersMWRepository } from 'src/orm/repositories/users_medicalwallet.repository';
-import { TypeORMError } from 'typeorm';
-import { DatabaseException } from 'src/orm/DatabaseException';
 import { LoggerService } from 'src/common/logger/logger.service';
-import { AccountTokenService } from 'src/common/crypto/token.service';
 import { ConfigService } from '@nestjs/config';
 import { SendSmsResDto } from '../dtos/response.dto';
 import { NcpSmsDto } from '../dtos/api-response.dto';
 import { EnvUndefinedError } from 'src/common/exception/errors';
 import { API, AxiosError } from 'src/common/third-party-api/api';
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
+import { NcpMesasgeException } from '../NcpMesasgeException';
+import { NCP_BAD_REQUEST, NCP_FORBIDDEN, NCP_NOT_FOUND, NCP_SERVER_ERROR, NCP_TOO_MANY, NCP_UNAUTHORIZED } from '../types';
 
 @Injectable()
 export class SmsService extends API{
@@ -25,8 +21,6 @@ export class SmsService extends API{
     constructor(
         private readonly logger: LoggerService,
         private readonly configService: ConfigService,
-        private readonly accountService: AccountTokenService,
-        private readonly usersMWRepository: UsersMWRepository
     ) {
         super();
 
@@ -44,22 +38,35 @@ export class SmsService extends API{
         }
     }
 
+    /**
+     * send SMS message
+     *
+     * @param sendSmsDto - API DTO
+     * @returns return response body DTO if process success
+     */
     async sendSMS(sendSmsDto: SendSmsDto): Promise<SendSmsResDto> {
-        try {
-            
-            // const body: NcpSmsDto = await
+        const type = 'sms'
+        const target = sendSmsDto.mobile;
+        const message = sendSmsDto.message;
 
-            let requestId = ''; // temp value
-            return SendSmsResDto.create(requestId);
+        try {
+            const body = await this.sendMessage(type, target, message);
+
+            return SendSmsResDto.create(body.requestId);
         } catch (error) {
-            if (error instanceof TypeORMError) {
-                throw new DatabaseException(error);
-            }
             throw error;
         }
     }
 
-    private async sendMessage(type: string, taget: string, message: string): Promise<NcpSmsDto> {
+    /**
+     * send some type of message via NCP SMS API
+     *
+     * @param type - one of 'sms', 'lms', 'mms'
+     * @param target - receiver's phone number
+     * @param message - message content to send
+     * @returns return response body if request success
+     */
+    private async sendMessage(type: string, target: string, message: string): Promise<NcpSmsDto> {
 
         if(!this.isValidType(type)){
             throw new InternalServerErrorException('Invalid NCP Message Type');
@@ -84,7 +91,7 @@ export class SmsService extends API{
             content: message,
             messages: [
                 {
-                    to: taget
+                    to: target
                 }
             ]
         };
@@ -104,22 +111,28 @@ export class SmsService extends API{
             return data;
         }catch(error){
             if(error instanceof Error){
-                this.logger.debug('axios error from ncp sms:', error);
+                this.logger.debug('axios error from ncp sms:', error); // TODO: 확인 후 삭제
                 const asxiosError = error as AxiosError<NcpSmsDto>;
                 const response = asxiosError.response;
-                // TODO: NcpException 정의, 및 NCP Filter 구현
+                const requestId = response.data.requestId || 'undefined';
+                // TODO: create NcpException Filter
                 switch (response.status) {
                     case 400:
-                      return [null, new ServiceApiError(BAD_REQUEST_ERROR, data.error)];
+                        throw new NcpMesasgeException(NCP_BAD_REQUEST, requestId);
                     case 401:
-                      return [null, new ServiceApiError(INVALID_TOKEN_ERROR, data.error)];
+                        throw new NcpMesasgeException(NCP_UNAUTHORIZED, requestId);
+                    case 403:
+                        throw new NcpMesasgeException(NCP_FORBIDDEN, requestId);
                     case 404:
-                      return [null, new ServiceApiError(NOT_FOUND_ERROR, data.error)];
+                        throw new NcpMesasgeException(NCP_NOT_FOUND, requestId);
+                    case 429:
+                        throw new NcpMesasgeException(NCP_TOO_MANY, requestId);
                     case 500:
-                      return [null, new ServiceApiError(SERVER_ERROR, data.error)];
                     default:
-                      return [null, new ServiceApiError(HTTP_ERROR, data.error)];
+                        throw new NcpMesasgeException(NCP_SERVER_ERROR, requestId);
                 }
+            }else{
+                throw error;
             }
         }
 
@@ -141,28 +154,5 @@ export class SmsService extends API{
         }
 
         return true;
-    }
-
-    /**
-     * return third party api url
-     *
-     * @param type - one of 'sms', 'lms', 'mms'
-     * @returns return url string
-     */
-    private getServiceUrl(type: string): string{
-        switch(type){
-            case 'sms':
-                return this.configService.get<string>('NAVER_SMS_URL');
-            default:
-                return this.configService.get<string>('NAVER_SMS_URL');
-            // NOTE: 기능 구현 예정
-            // case 1:
-        
-                // return this.configService.get<string>('NAVER_LMS_URL');
-            
-            // case 2:
-        
-                // return this.configService.get<string>('NAVER_MMS_URL');
-        }
     }
 }
