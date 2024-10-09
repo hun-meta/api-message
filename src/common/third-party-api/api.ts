@@ -4,6 +4,7 @@ import { BaseResponse } from '../response/dto/base-response.dto';
 export interface AxiosError<T> {
     message: string;
     name: string;
+    status: number;
     code: string;
     config: AxiosRequestConfig;
     request?: any; // XMLHttpRequest or Node.js http.ClientRequest
@@ -26,6 +27,7 @@ class API {
       this.axiosInstance = axios.create({
         baseURL: url,
       });
+    //   this.axiosInstance = axios.create();
     }
 
     // API 요청 메소드

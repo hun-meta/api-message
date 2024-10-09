@@ -1,32 +1,47 @@
 // swagger.metadata.ts
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'src/common/exception/types/http.type';
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR, UNAUTHORIZED } from 'src/common/exception/types/http.type';
 import { createBody, createSwaggerOptions } from '../../common/swagger/swagger.decorator';
 import { SEND_REQ_COMPLETED } from '../types';
-import { DB_CONNECTION_ERROR } from 'src/common/exception/types/database.type';
 
-// TODO: 실제 응답에 맞게 수정 필요
 export const sendSmsOpts = createSwaggerOptions({
-    summary: 'check account value is available for registering',
+    summary: 'send SMS message via ncp api',
+    bearerAuth: true,
+    // headers: [
+    //     {
+    //         name: 'X-TEST-HEADER',
+    //         description: 'any value for test',
+    //         required: true,
+    //         schema: {
+    //             type: 'string',
+    //             example: 'test value',
+    //         },
+    //     },
+    // ],
     body: {
-        description: 'user login account value',
+        description: 'receiver phone number & sms message',
         required: true,
         schema: {
             type: 'object',
             properties: {
-                account: {
+                mobile: {
                     type: 'string',
-                    description: 'The login account for user',
-                    example: 'testaccount',
+                    description: 'phone number value',
+                    example: '01012345678',
+                },
+                message: {
+                    type: 'string',
+                    description: 'sms message value',
+                    example: 'hello baby',
                 },
             },
-            required: ['account'],
+            required: ['mobile', 'message'],
         },
     },
     responses: [
         {
-            status: 200,
-            description: 'request success, account available',
-            schema: { example: createBody(SEND_REQ_COMPLETED, { available: true }) },
+            status: 202,
+            description: 'Message Send Request Completed',
+            schema: { example: createBody(SEND_REQ_COMPLETED, { requestId: 'request ID' }) },
         },
         {
             status: 400,
@@ -34,7 +49,17 @@ export const sendSmsOpts = createSwaggerOptions({
             schema: {
                 example: createBody(BAD_REQUEST, {
                     message:
-                        'Login Account must be 6 to 20 characters long and contain only Alphabet letters and numbers.',
+                        'Mobile number must start with 01 and be 10 or 11 digits long. || Message contains invalid characters. || Message must be 90 bytes or fewer. || NCP api Bad Request',
+                }),
+            },
+        },
+        {
+            status: 401,
+            description: 'UnAuthorized',
+            schema: {
+                example: createBody(UNAUTHORIZED, {
+                    message:
+                        'Invalid API key || Authorization header is missing',
                 }),
             },
         },
@@ -43,16 +68,7 @@ export const sendSmsOpts = createSwaggerOptions({
             description: 'Internal Server Error',
             schema: {
                 example: createBody(INTERNAL_SERVER_ERROR, {
-                    message: 'Internal server error',
-                }),
-            },
-        },
-        {
-            status: 503,
-            description: 'Server Connection Error',
-            schema: {
-                example: createBody(DB_CONNECTION_ERROR, {
-                    message: 'Server unavailable',
+                    message: 'Internal server error || NCP api Internal Server Error',
                 }),
             },
         },

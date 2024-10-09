@@ -14,6 +14,8 @@ import { ErrorHandlerModule } from 'src/common/exception/handler/error-handler.m
 import { AppController } from './services/app.controller.v1';
 import { AppService } from './services/app.service';
 import { RequestGuard } from 'src/common/request/request.guard';
+import { SmsController } from 'src/sms/services/sms.controller.v1';
+import { SmsModule } from 'src/sms/sms.module';
 
 @Module({
     imports: [
@@ -27,6 +29,7 @@ import { RequestGuard } from 'src/common/request/request.guard';
         }),
         winstonLogger,
         ErrorHandlerModule,
+        SmsModule
     ],
     controllers: [AppController],
     providers: [
