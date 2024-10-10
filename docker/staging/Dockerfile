@@ -20,15 +20,21 @@ COPY --from=deps /app/node_modules ./node_modules
 # Get Rest of the Codes From Context
 COPY . .
 
-# not build it cause it's for development
+# Build the NestJS application
+RUN npm run build
 
 FROM base AS runner
 WORKDIR /app
 
-COPY --from=builder /app/. .
+# # Get NestJS build Files and Code
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/.env .env
+COPY --from=builder /app/.env.development .env.development
 
 EXPOSE 3000
 ENV PORT=3000
 
-# Command to run development application
-CMD ["npm", "run", "start:dev"]
+# # Command to run the application
+CMD ["npm", "run", "start:prod"]

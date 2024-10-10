@@ -14,26 +14,46 @@
 프로젝트 설치 및 설정 방법입니다.
 
 Instructions on how to install and set up the project. Include any prerequisites.
+Need docker, docker-compose
 
 ```bash
 # Clone the repository
 git clone git@github.com:hun-meta/api-message.git
 
 # Navigate into the directory
-cd api-auth
+cd api-message
 
-# Install dependencies
-npm ci
+# set env
+export SERVER_PLATFORM=<your platform>
+# ex. export SERVER_PLATFORM=linux/amd64
+
+# SET .env & .env.development
+vi .env
+vi .env.development
+
+# install Make utility
+sudo apt update
+sudo apt install build-essential
+
+# change branch to dev
+git checkout dev
+
+# docker image build 
+make build-development
 ```
 
 ## Usage
 Information on how to use the project, including examples and code snippets.
 
 ```bash
-# Clone docker-compose Project
+# run project
+make start-development
 
-# Run the application
+# stop project
+make stop-development
 
+# stop & delete volume of project
+make delete-development
 ```
 
 ## Contact
