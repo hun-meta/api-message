@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
-import { SendSmsDto } from '../dtos/request.dto';
+import { SendLmsDto, SendSmsDto } from '../dtos/request.dto';
 import { LoggerService } from 'src/common/logger/logger.service';
 import { ConfigService } from '@nestjs/config';
-import { SendSmsResDto } from '../dtos/response.dto';
+import { SendMsgResDto } from '../dtos/response.dto';
 import { NcpSmsDto } from '../dtos/api-response.dto';
 import { EnvUndefinedError } from 'src/common/exception/errors';
 import { NcpMesasgeException } from '../exceptions/NcpMesasgeException';
@@ -40,7 +40,7 @@ export class SmsService{
      * @param sendSmsDto - API DTO
      * @returns return response body DTO if process success
      */
-    async sendSMS(sendSmsDto: SendSmsDto): Promise<SendSmsResDto> {
+    async sendSMS(sendSmsDto: SendSmsDto): Promise<SendMsgResDto> {
         const type = 'sms'
         const target = sendSmsDto.mobile;
         const message = sendSmsDto.message;
@@ -48,7 +48,27 @@ export class SmsService{
         try {
             const body = await this.sendMessage(type, target, message);
 
-            return SendSmsResDto.create(body.requestId);
+            return SendMsgResDto.create(body.requestId);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * send LMS message
+     *
+     * @param sendSmsDto - API DTO
+     * @returns return response body DTO if process success
+     */
+    async sendLMS(sendLmsDto: SendLmsDto): Promise<SendMsgResDto> {
+        const type = 'lms'
+        const target = sendLmsDto.mobile;
+        const message = sendLmsDto.message;
+
+        try {
+            const body = await this.sendMessage(type, target, message);
+
+            return SendMsgResDto.create(body.requestId);
         } catch (error) {
             throw error;
         }
@@ -65,7 +85,6 @@ export class SmsService{
     async sendMessage(type: string, target: string, message: string): Promise<NcpSmsDto> {
 
         try {
-    
             // Naver SMS API Task
             const method = "POST";
             const fullUrl = `${this.baseUrl}/services/${this.naverServiceId}/messages`;
