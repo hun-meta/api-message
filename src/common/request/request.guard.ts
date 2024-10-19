@@ -26,9 +26,9 @@ export class RequestGuard implements CanActivate {
       throw new UnauthorizedException('Authorization header is missing');
     }
 
-    const apiKey = this.configService.get<string>('SMS_API_KEY');
+    const apiKey = this.configService.get<string>('MESSAGE_API_KEY');
     if (!apiKey) {
-      throw new EnvUndefinedError(['SMS_API_KEY']);
+      throw new EnvUndefinedError(['MESSAGE_API_KEY']);
     }
 
     const [type, token] = authorizationHeader.split(' ');
