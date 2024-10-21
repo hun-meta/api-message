@@ -1,7 +1,6 @@
 // swagger.metadata.ts
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'src/common/exception/types/http.type';
-import { createBody, createSwaggerOptions } from '../../common/swagger/swagger.decorator';
-import { SUCCESS_RES } from '../types';
+import { createBody, createSwaggerOptions } from '../../common/decorator/swagger.decorator';
+import { SUCCESS_RES } from '../constants/response-info.constants';
 
 export const getDefaultResponseOpts = createSwaggerOptions({
     summary: 'return datetime, for testing server(Default Path)',

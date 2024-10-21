@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsString, Matches, Validate } from 'class-validator';
-import { IsByteLengthConstraint } from 'src/common/decorator/validator';
+import { IsByteLengthConstraint } from 'src/common/decorator/validator.decorator';
 
 // Send SMS DTO
 export class SendSmsDto {

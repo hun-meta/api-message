@@ -1,10 +1,10 @@
 import { Controller, Get, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AppService } from './app.service';
-import { LoggerService } from 'src/common/logger/logger.service';
+import { LoggerService } from 'src/common/logger/services/logger.service';
 import { ControllerResponse } from 'src/common/response/dto/controller-response.dto';
 import { DefaultDto, HealthCheckDto } from '../dtos/default.dto';
-import { SUCCESS_RES } from '../types';
-import { CustomSwaggerDecorator } from 'src/common/swagger/swagger.decorator';
+import { SUCCESS_RES } from '../constants/response-info.constants';
+import { CustomSwaggerDecorator } from 'src/common/decorator/swagger.decorator';
 import { getDefaultResponseOpts, getHealthOpts } from '../swagger/swagger.metadata';
 import { Public } from 'src/common/request/request.guard';
 

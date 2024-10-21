@@ -1,5 +1,5 @@
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR, UNAUTHORIZED } from 'src/common/exception/types/http.type';
-import { createBody, createSwaggerOptions } from '../../common/swagger/swagger.decorator';
+import { BAD_REQUEST, INTERNAL_SERVER_ERROR, UNAUTHORIZED } from 'src/common/exception/constants/http.response-info.constants';
+import { createBody, createSwaggerOptions } from '../../common/decorator/swagger.decorator';
 import { SEND_REQ_COMPLETED } from '../types';
 
 export const sendSmsOpts = createSwaggerOptions({

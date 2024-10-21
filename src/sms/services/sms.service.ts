@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { SendLmsDto, SendSmsDto } from '../dtos/request.dto';
-import { LoggerService } from 'src/common/logger/logger.service';
+import { LoggerService } from 'src/common/logger/services/logger.service';
 import { ConfigService } from '@nestjs/config';
 import { SendMsgResDto } from '../dtos/response.dto';
 import { NcpSmsDto } from '../dtos/api-response.dto';

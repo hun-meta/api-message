@@ -6,10 +6,9 @@ import { ClsService } from 'nestjs-cls';
 // Custom modules
 import { NcpMesasgeException } from './NcpMesasgeException';
 import { NCP_BAD_REQUEST, NCP_SERVER_ERROR } from '../types';
-import { LoggerService } from 'src/common/logger/logger.service';
+import { LoggerService } from 'src/common/logger/services/logger.service';
 import { GlobalErrorDto } from 'src/common/exception/dto';
 import { BaseResponse } from 'src/common/response/dto/base-response.dto';
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from 'src/common/exception/types/http.type';
 
 // INFO: Global NCP API Exception filter
 @Catch(NcpMesasgeException)

@@ -1,11 +1,12 @@
+import { BASE_EXCEPTION } from "./constants/exception-name.constants";
+
 // Any Error instances that I didn't Expected. (Must handle it after Error occured)
 export class CustomUnExpectedError extends Error {
     code: number;
 
     constructor(error: Error) {
         super(error.message);
-        this.name = 'CustomUnExpectedError';
-        this.code = 9000;
+        this.name = BASE_EXCEPTION.UNEXPECTED;
         this.stack = error.stack || null;
     }
 }
@@ -16,8 +17,7 @@ export class CustomUndefinedError extends Error {
 
     constructor(error: any) {
         super(`Custom Undefined Error: ${error}`);
-        this.name = 'CustomUndefinedError';
-        this.code = 9001;
+        this.name = BASE_EXCEPTION.UNDEFINED;
 
         // Set Prototype for "instanceof CustomUndefinedError"
         Object.setPrototypeOf(this, new.target.prototype);
@@ -30,8 +30,7 @@ export class EnvUndefinedError extends Error {
 
     constructor(envNames: string[]) {
         super(`Env Undefined Error: ${envNames.join(', ')}`);
-        this.name = 'EnvUndefinedError';
-        this.code = 9002;
+        this.name = BASE_EXCEPTION.ENV;
 
         // Set Prototype for "instanceof CustomUndefinedError"
         Object.setPrototypeOf(this, new.target.prototype);

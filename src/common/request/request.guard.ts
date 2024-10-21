@@ -8,10 +8,15 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
 @Injectable()
 export class RequestGuard implements CanActivate {
+
+  private readonly apiKey: string;
+
   constructor(
     private reflector: Reflector,
     private configService: ConfigService
-  ) {}
+  ) {
+    this.apiKey = this.configService.get<string>('MESSAGE_API_KEY');
+  }
 
   canActivate(context: ExecutionContext): boolean {
     const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler());
@@ -26,14 +31,13 @@ export class RequestGuard implements CanActivate {
       throw new UnauthorizedException('Authorization header is missing');
     }
 
-    const apiKey = this.configService.get<string>('MESSAGE_API_KEY');
-    if (!apiKey) {
+    if (!this.apiKey) {
       throw new EnvUndefinedError(['MESSAGE_API_KEY']);
     }
 
     const [type, token] = authorizationHeader.split(' ');
 
-    if (type !== 'Bearer' || token !== apiKey) {
+    if (type !== 'Bearer' || token !== this.apiKey) {
       throw new UnauthorizedException('Invalid API key');
     }
 
