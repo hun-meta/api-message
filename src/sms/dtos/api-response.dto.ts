@@ -9,7 +9,7 @@ export class NcpSmsDto {
     requestTime: string;
 
     @IsString()
-    statusCode:  string;
+    statusCode: string;
 
     @IsString()
     statusName: string;

@@ -1,4 +1,8 @@
-import { BAD_REQUEST, INTERNAL_SERVER_ERROR, UNAUTHORIZED } from 'src/common/exception/constants/http.response-info.constants';
+import {
+    BAD_REQUEST,
+    INTERNAL_SERVER_ERROR,
+    UNAUTHORIZED,
+} from 'src/common/exception/constants/http.response-info.constants';
 import { createBody, createSwaggerOptions } from '../../common/decorator/swagger.decorator';
 import { SEND_REQ_COMPLETED } from '../types';
 
@@ -57,8 +61,7 @@ export const sendSmsOpts = createSwaggerOptions({
             description: 'UnAuthorized',
             schema: {
                 example: createBody(UNAUTHORIZED, {
-                    message:
-                        'Invalid API key || Authorization header is missing',
+                    message: 'Invalid API key || Authorization header is missing',
                 }),
             },
         },
@@ -118,8 +121,7 @@ export const sendLmsOpts = createSwaggerOptions({
             description: 'UnAuthorized',
             schema: {
                 example: createBody(UNAUTHORIZED, {
-                    message:
-                        'Invalid API key || Authorization header is missing',
+                    message: 'Invalid API key || Authorization header is missing',
                 }),
             },
         },

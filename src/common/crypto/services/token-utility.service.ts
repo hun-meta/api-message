@@ -12,7 +12,7 @@ export class TokenUtilityService {
     constructor(
         private readonly logger: LoggerService,
         private readonly config: ConfigService,
-        private readonly keyService: KeyService
+        private readonly keyService: KeyService,
     ) {
         this.logger.setContext(TokenUtilityService.name);
         this.publicKey = this.keyService.getPublicKey();
@@ -29,8 +29,8 @@ export class TokenUtilityService {
             const decoded = jwt.verify(token, this.publicKey, { algorithms: ['RS256'] });
             return JWT_VERIFIED;
         } catch (error) {
-            if(error instanceof Error){
-                switch(error.name){
+            if (error instanceof Error) {
+                switch (error.name) {
                     case 'TokenExpiredError':
                         return JWT_EXPIRED;
                     case 'JsonWebTokenError':

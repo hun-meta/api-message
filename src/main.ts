@@ -1,20 +1,19 @@
 // NestJS
 import { NestFactory } from '@nestjs/core';
-
 // 3rd Party
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
 dotenv.config();
-
-// Custom Modules
+// Local
 import { AppModule } from './app/app.module';
 
+// Root Execution Function
 async function bootstrap() {
     // Loggin Start Time
     const currentDate = new Date();
     const unixTime = Math.floor(currentDate.getTime() / 1000);
     console.log(
-        `\nStarting API-Message NestJS Application..\nExecution Date and Time: ${currentDate.toLocaleString()}\nUnix Time: ${unixTime}\n`,
+        `\nStarting ${process.env.PROJECT} NestJS Application..\nExecution Date and Time: ${currentDate.toLocaleString()}\nUnix Time: ${unixTime}\n`,
     );
 
     const ABORT_ON_ERROR = process.env.ABORT_ON_ERROR === 'true';
@@ -24,7 +23,7 @@ async function bootstrap() {
     });
 
     // Set Global Prefix for API-AUTH
-    app.setGlobalPrefix('api/message');
+    app.setGlobalPrefix(`${process.env.PROJECT_BASE_URI}`);
 
     // Set Swagger docs
     const config = new DocumentBuilder()
@@ -36,8 +35,9 @@ async function bootstrap() {
         .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api/message/docs', app, document);
+    SwaggerModule.setup(`${process.env.PROJECT_BASE_URI}/docs`, app, document);
 
     await app.listen(3000);
 }
+
 bootstrap();

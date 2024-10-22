@@ -8,40 +8,38 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
 @Injectable()
 export class RequestGuard implements CanActivate {
+    private readonly apiKey: string;
 
-  private readonly apiKey: string;
-
-  constructor(
-    private reflector: Reflector,
-    private configService: ConfigService
-  ) {
-    this.apiKey = this.configService.get<string>('MESSAGE_API_KEY');
-  }
-
-  canActivate(context: ExecutionContext): boolean {
-    const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler());
-    if (isPublic) {
-      return true;
+    constructor(
+        private reflector: Reflector,
+        private configService: ConfigService,
+    ) {
+        this.apiKey = this.configService.get<string>('MESSAGE_API_KEY');
     }
 
-    const request = context.switchToHttp().getRequest();
-    const authorizationHeader = request.headers['authorization'];
+    canActivate(context: ExecutionContext): boolean {
+        const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler());
+        if (isPublic) {
+            return true;
+        }
 
-    if (!authorizationHeader) {
-      throw new UnauthorizedException('Authorization header is missing');
+        const request = context.switchToHttp().getRequest();
+        const authorizationHeader = request.headers['authorization'];
+
+        if (!authorizationHeader) {
+            throw new UnauthorizedException('Authorization header is missing');
+        }
+
+        if (!this.apiKey) {
+            throw new EnvUndefinedError(['MESSAGE_API_KEY']);
+        }
+
+        const [type, token] = authorizationHeader.split(' ');
+
+        if (type !== 'Bearer' || token !== this.apiKey) {
+            throw new UnauthorizedException('Invalid API key');
+        }
+
+        return true;
     }
-
-    if (!this.apiKey) {
-      throw new EnvUndefinedError(['MESSAGE_API_KEY']);
-    }
-
-    const [type, token] = authorizationHeader.split(' ');
-
-    if (type !== 'Bearer' || token !== this.apiKey) {
-      throw new UnauthorizedException('Invalid API key');
-    }
-
-    return true;
-  }
 }
-

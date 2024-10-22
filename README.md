@@ -60,6 +60,10 @@ make delete-development
 ## Env Settings
 - .env
     ```
+    # Project
+    PROJECT=API-Message
+    PROJECT_BASE_URI=api/message
+
     # Server Settings
     ABORT_ON_ERROR=false
     NODE_ENV=development # development staging production
@@ -69,15 +73,6 @@ make delete-development
     ```
 - .env.development
     ```
-    # JWT
-    ISSUER=api-auth-development # jwt iss claim for development
-    MW=Medical_Wallet # jwt aud claim for Medical Wallet Service
-    CC=Chain_Chart # jwt aud clain for Chain Chart Service
-    EX_ACCESS=<period> # Access token expiration period
-    EX_REFRESH=<period> # Refresh token expiration period
-    EX_REGISTER=<period> # Tokens(account, mobile) for register expiration period
-    EX_MOBILE_VERIFY=3m # Token for verify mobile number
-
     # Message Service
     MESSAGE_API_KEY=<create your own key>
 

@@ -7,12 +7,18 @@ import { SendMsgResDto } from '../dtos/response.dto';
 import { NcpSmsDto } from '../dtos/api-response.dto';
 import { EnvUndefinedError } from 'src/common/exception/errors';
 import { NcpMesasgeException } from '../exceptions/NcpMesasgeException';
-import { NCP_BAD_REQUEST, NCP_FORBIDDEN, NCP_NOT_FOUND, NCP_SERVER_ERROR, NCP_TOO_MANY, NCP_UNAUTHORIZED } from '../types';
+import {
+    NCP_BAD_REQUEST,
+    NCP_FORBIDDEN,
+    NCP_NOT_FOUND,
+    NCP_SERVER_ERROR,
+    NCP_TOO_MANY,
+    NCP_UNAUTHORIZED,
+} from '../types';
 import axios, { AxiosError, AxiosResponse } from 'axios';
 
 @Injectable()
-export class SmsService{
-
+export class SmsService {
     private baseUrl: string; // NCP SMS Service base url
     private naverServiceId: string; // NCP project Service ID
     private accessKey: string; // NCP project Access Key
@@ -29,7 +35,7 @@ export class SmsService{
         this.secretKey = this.configService.get<string>('NAVER_SMS_SECRET');
         this.from = this.configService.get<string>('SENDER_PHONE');
 
-        if(!this.naverServiceId || !this.accessKey || !this.secretKey || !this.from){
+        if (!this.naverServiceId || !this.accessKey || !this.secretKey || !this.from) {
             throw new EnvUndefinedError(['NAVER_SMS_ID', 'NAVER_SMS_ACCESS', 'NAVER_SMS_SECRET', 'SENDER_PHONE']);
         }
     }
@@ -41,7 +47,7 @@ export class SmsService{
      * @returns return response body DTO if process success
      */
     async sendSMS(sendSmsDto: SendSmsDto): Promise<SendMsgResDto> {
-        const type = 'sms'
+        const type = 'sms';
         const target = sendSmsDto.mobile;
         const message = sendSmsDto.message;
 
@@ -61,7 +67,7 @@ export class SmsService{
      * @returns return response body DTO if process success
      */
     async sendLMS(sendLmsDto: SendLmsDto): Promise<SendMsgResDto> {
-        const type = 'lms'
+        const type = 'lms';
         const target = sendLmsDto.mobile;
         const message = sendLmsDto.message;
 
@@ -83,47 +89,46 @@ export class SmsService{
      * @returns return response body if request success
      */
     async sendMessage(type: string, target: string, message: string): Promise<NcpSmsDto> {
-
         try {
             // Naver SMS API Task
-            const method = "POST";
+            const method = 'POST';
             const fullUrl = `${this.baseUrl}/services/${this.naverServiceId}/messages`;
             const urlPathOnly = this.extractPath(fullUrl);
             const timestamp = Date.now().toString();
             const signature = this.makeSignature(method, urlPathOnly, timestamp);
-    
+
             const requestBody = {
                 type: type,
-                contentType: "COMM",
-                countryCode: "82",
+                contentType: 'COMM',
+                countryCode: '82',
                 from: this.from,
                 content: message,
                 messages: [
                     {
-                        to: target
-                    }
-                ]
+                        to: target,
+                    },
+                ],
             };
-        
+
             const headers = {
                 'Content-Type': 'application/json; charset=utf-8',
                 'x-ncp-apigw-timestamp': timestamp,
                 'x-ncp-iam-access-key': this.accessKey,
-                'x-ncp-apigw-signature-v2': signature
+                'x-ncp-apigw-signature-v2': signature,
             };
-            
+
             const response: AxiosResponse<NcpSmsDto> = await axios.post(fullUrl, requestBody, { headers });
             if (response.status === 202 && response.data.statusCode === '202') {
                 return response.data; // 요청이 성공하면 응답을 반환
-            }else{
+            } else {
                 throw response;
             }
         } catch (error) {
             // 오류가 발생하면 오류 메시지를 반환
-            if(error instanceof AxiosError){
+            if (error instanceof AxiosError) {
                 const response: AxiosResponse<NcpSmsDto> = error.response;
                 const requestId = response.data.requestId || 'undefined';
-                switch(error.status || 500){
+                switch (error.status || 500) {
                     case 400:
                         throw new NcpMesasgeException(NCP_BAD_REQUEST, requestId);
                     case 401:
@@ -152,24 +157,23 @@ export class SmsService{
      * @returns return signatureV2 for NCP
      */
     private makeSignature(method_param: string, url_param: string, timestamp_param: string) {
-        const space = " ";				// one space
-        const newLine = "\n";				// new line
-        const method = method_param;				// method
-        const url = url_param;	// url (include query string)
+        const space = ' '; // one space
+        const newLine = '\n'; // new line
+        const method = method_param; // method
+        const url = url_param; // url (include query string)
         const timestamp = timestamp_param;
-        const accessKey = this.accessKey;			// access key id (from portal or Sub Account)
-        const secretKey = this.secretKey;			// secret key (from portal or Sub Account)
+        const accessKey = this.accessKey; // access key id (from portal or Sub Account)
+        const secretKey = this.secretKey; // secret key (from portal or Sub Account)
 
         // Create the string to sign
         const sigMessage = method + space + url + newLine + timestamp + newLine + accessKey;
         console.log('failed code');
         console.log('signature message: %o', sigMessage);
-    
+
         // Create the HMAC SHA256 hash
         const hmac = crypto.createHmac('sha256', secretKey);
         hmac.update(sigMessage);
 
-    
         // Return the Base64-encoded signature
         return hmac.digest('base64');
     }
@@ -185,9 +189,8 @@ export class SmsService{
             const url = new URL(fullUrl);
             return url.pathname;
         } catch (error) {
-            console.error("Invalid URL:", error);
+            console.error('Invalid URL:', error);
             return null;
         }
     }
-    
 }

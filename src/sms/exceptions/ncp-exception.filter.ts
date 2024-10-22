@@ -32,22 +32,20 @@ export class NcpExceptionFilter implements ExceptionFilter {
 
         // ncp api exception handling
         if (exception instanceof NcpMesasgeException) {
-
             errName = exception.name;
             errMessage = exception.message;
-            if(exception.status === 400){ // 400 -> 400
+            if (exception.status === 400) {
+                // 400 -> 400
                 info = NCP_BAD_REQUEST;
-            }else{ // the other -> 500
+            } else {
+                // the other -> 500
                 info = NCP_SERVER_ERROR;
             }
 
             this.logger.error('NCP API request ID:', exception.requestId);
         }
 
-        this.logger.error(
-            `Request Error - ID: ${requestId}, ${errName}: ${errMessage}`,
-            exception.stack || '',
-        );
+        this.logger.error(`Request Error - ID: ${requestId}, ${errName}: ${errMessage}`, exception.stack || '');
 
         const errDto = GlobalErrorDto.create(info.message);
         const errResponse = BaseResponse.create(requestId, info, errDto);

@@ -26,7 +26,7 @@ import { GlobalLoggerModule } from 'src/common/logger/logger.module';
         }),
         // winstonLogger,
         GlobalLoggerModule,
-        SmsModule
+        SmsModule,
     ],
     controllers: [AppController],
     providers: [
@@ -35,8 +35,8 @@ import { GlobalLoggerModule } from 'src/common/logger/logger.module';
             useClass: GlobalExceptionsFilter,
         },
         {
-          provide: APP_GUARD,
-          useClass: RequestGuard,
+            provide: APP_GUARD,
+            useClass: RequestGuard,
         },
         {
             provide: APP_INTERCEPTOR,
