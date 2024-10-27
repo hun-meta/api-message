@@ -118,7 +118,7 @@ export class SmsService {
             };
 
             const response: AxiosResponse<NcpSmsDto> = await axios.post(fullUrl, requestBody, { headers });
-            if (response.status === 202 && response.data.statusCode === '202') {
+            if (response.status === 202) {
                 return response.data; // 요청이 성공하면 응답을 반환
             } else {
                 throw response;
@@ -127,6 +127,7 @@ export class SmsService {
             // 오류가 발생하면 오류 메시지를 반환
             if (error instanceof AxiosError) {
                 const response: AxiosResponse<NcpSmsDto> = error.response;
+                this.logger.debug('response:', response);
                 const requestId = response.data.requestId || 'undefined';
                 switch (error.status || 500) {
                     case 400:
